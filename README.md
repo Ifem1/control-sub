@@ -102,7 +102,7 @@ Status constants: `SUBMITTED=1`, `ASSESS_PASS=2`, `ASSESS_FAIL=3`, `ASSESS_UNKNO
 
 ### Example
 
-See [`examples/charter.json`](examples/charter.json) and [`examples/controls.template.json`](examples/controls.template.json). The source templates cannot be used until the actual `Ifem1/control-sub` repository exists and those files have been published in a real pinned commit. Replace placeholders with the 40-character lowercase commit SHA and the exact SHA256 returned by `python scripts/check_source.py examples/gateway.yml` and the corresponding review file.
+See [`examples/charter.json`](examples/charter.json) and [`examples/controls.template.json`](examples/controls.template.json). The control file contains immutable pins to the published example YAML at commit `4de8bac4e7cf68dc43c6d34bc3461157b6ad44be`; both raw GitHub URLs returned HTTP 200 and the exact Git blob bytes matched the recorded SHA256 digests. Verify future changes against the actual published bytes with `python scripts/check_source.py` before updating these pins.
 
 Only an authorized repo is eligible; passing examples do not imply the YAML fixtures document production-grade controls. A proper live example should use nontrivial public, testable configuration plus meaningful negative controls.
 
@@ -127,9 +127,9 @@ python -m pytest tests/test_direct_mode.py -v
 
 The local GenLayer CLI is pinned in `package.json`; use the committed npm lockfile and `npm ci`. The deployment guard refuses any RPC whose chain ID is not **61999**, and refuses any CLI version other than **0.39.1**. Never point this project's scripts at 61997, Studio-dev or Studio-next. The deployment script guards immediately before the primitive deploy operation. Consumer deployment must be a separate guarded phase after the primitive address and pinned charter values have been independently verified; it is not safe to guess those runtime values or infer them from a deployment submission.
 
-## Verification status for this source export
+## Verification status
 
-This workspace is a source-only directory without Git metadata. GitHub was unreachable and configured GitHub CLI credentials were invalid during the handoff attempt. Therefore no immutable source commit, real evidence digest, live contract address, transaction receipt, CI result, or StudioNet lifecycle claim is available here. Example controls and local test fixtures are illustrative and must not be described as production enforcement evidence. See `docs/TEST_MATRIX.md` for the verification boundary.
+The source and evidence examples are published at [`Ifem1/control-sub`](https://github.com/Ifem1/control-sub). Commit `4de8bac4e7cf68dc43c6d34bc3461157b6ad44be` contains the pinned source files. The current `main` branch adds strict type fixes and CI updates; CI status is linked from the repository Actions page. The sample YAML demonstrates documented mechanisms only: it does not prove a production gateway or review service enforces them. No live ControlSub or consumer deployment address, transaction receipt, or completed on-chain lifecycle is claimed by this repository. See `docs/TEST_MATRIX.md` for the verification boundary.
 
 ## Composition
 

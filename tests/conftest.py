@@ -91,5 +91,9 @@ def env(monkeypatch):
     monkeypatch.setitem(sys.modules, spec.name, imported)
     spec.loader.exec_module(imported)
     contract = imported.ControlSub()
+    # The Python-only harness has no GenVM-generated storage descriptors.
+    # Supply plain maps here; actual Direct Mode initializes storage fields.
+    contract.charters = TreeMap()
+    contract.candidates = TreeMap()
     return SimpleNamespace(mod=imported, contract=contract, gl=gl, vm=machine,
                            nondet=nondet, A=A, B=B, C=C)

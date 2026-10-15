@@ -6,9 +6,11 @@
   "scripts": {
     "cli:version": "genlayer --version",
     "network:guard": "node scripts/guard_studionet.mjs",
-    "deploy:contract": "node scripts/deploy_studionet.mjs"
+    "deploy:contract": "node scripts/deploy_studionet.mjs",
+    "deploy:studionet:cycle": "node scripts/run_studionet_cycle.mjs"
   },
   "devDependencies": {
-    "genlayer": "0.39.1"
+    "genlayer": "0.39.1",
+    "genlayer-js": "1.1.8"
   }
 }

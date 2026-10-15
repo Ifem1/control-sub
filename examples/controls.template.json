@@ -1,14 +1,14 @@
 [
   {
     "id": "GATEWAY",
-    "mechanism": "A gateway enforces credential-bound authentication and blocks the password fallback.",
-    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/4de8bac4e7cf68dc43c6d34bc3461157b6ad44be/examples/gateway.yml",
-    "source_sha256": "d4e8fb79dd73fee0e436e7acc9c80aea01bb1667dad06e26e91bbeb7f54cd7aa"
+    "mechanism": "Executable reference function rejects password-only credentials and accepts only an already-verified hardware-bound credential.",
+    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/93cdba4efef619202f00a50783f866b7e5c8f60b/examples/enforced_controls.py",
+    "source_sha256": "750aaadb18ed40873bf04a4768bd3043541f0bc71da85f73be10f71a52c4725f"
   },
   {
     "id": "REVIEW",
-    "mechanism": "A separate reviewer approval is enforced before production activation.",
-    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/4de8bac4e7cf68dc43c6d34bc3461157b6ad44be/examples/review.yml",
-    "source_sha256": "21b520242c1dcfd866d8d40a955e1c2a3882f2f2cd9b66f8b39047221501a89e"
+    "Behavior checks confirm activation raises a control violation when approval is absent and when the reviewer is the deployer.",
+    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/93cdba4efef619202f00a50783f866b7e5c8f60b/examples/test_enforced_controls.py",
+    "source_sha256": "ec308db982019058a2698690f5c048e93aba136b3b30f42f8ed37847d25b5f8c"
   }
 ]

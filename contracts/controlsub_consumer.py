@@ -1,6 +1,7 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 """Minimal genuine IC-to-IC consumer example. Not a frontend or a substitute oracle."""
 from genlayer import *
+from typing import Any, cast
 
 
 @gl.contract_interface
@@ -48,7 +49,10 @@ class ControlSubConsumer(gl.Contract):
             raise gl.vm.UserError("action hash mismatch")
         if not certificate_hash:
             raise gl.vm.UserError("missing certificate")
-        substitution = IControlSub(self.controlsub_address)
+        # GenLayer's proxy is dynamically implemented by the SDK; this explicit
+        # boundary cast retains the typed interface above without losing strict
+        # typing for the consumer's own state and arguments.
+        substitution: Any = cast(Any, IControlSub(self.controlsub_address))
         if not substitution.view().is_active(self.charter_id, candidate_id,
                                              certificate_hash, self.charter_hash):
             raise gl.vm.UserError("substitute not actively certified")
@@ -57,8 +61,8 @@ class ControlSubConsumer(gl.Contract):
         self.consumed_certificate_hash = certificate_hash
         return True
 
-    @gl.public.view
-    def get_execution(self) -> dict:
+    @gl.public.view  # type: ignore[reportUnknownMemberType]  # SDK decorator has no strict typing
+    def get_execution(self) -> dict[str, Any]:
         return {"owner": str(self.owner), "executed": self.executed,
                 "candidate_id": int(self.consumed_candidate_id),
                 "certificate_hash": self.consumed_certificate_hash,

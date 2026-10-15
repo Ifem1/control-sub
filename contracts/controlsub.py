@@ -13,10 +13,11 @@ authority rests on the charter owner's explicit allowlisted repositories.
 """
 from genlayer import *
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 import hashlib
 import json
 import re
+from typing import Any, NoReturn, cast
 
 
 # Public interface enums; identifiers are deliberately stable.
@@ -61,11 +62,11 @@ DIM_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]{1,31}$")
 ERR = "CONTROLSUB"
 
 
-def _error(msg: str):
+def _error(msg: str) -> NoReturn:
     raise gl.vm.UserError(ERR + ": " + msg)
 
 
-def _canonical(value) -> str:
+def _canonical(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
@@ -73,15 +74,17 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _hash(value) -> str:
+def _hash(value: Any) -> str:
     return _sha256(_canonical(value).encode("utf-8"))
 
 
-def _strict_obj(value, keys) -> bool:
-    return isinstance(value, dict) and set(value.keys()) == set(keys)
+def _strict_obj(value: Any, keys: tuple[str, ...]) -> bool:
+    if not isinstance(value, dict):
+        return False
+    return set(cast(dict[str, Any], value).keys()) == set(keys)
 
 
-def _text(value, max_len: int, field: str) -> str:
+def _text(value: Any, max_len: int, field: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip() or len(value) > max_len:
         _error("invalid " + field)
     if "\x00" in value:
@@ -89,8 +92,8 @@ def _text(value, max_len: int, field: str) -> str:
     return value
 
 
-def _json(raw: str, max_len: int, name: str):
-    if not isinstance(raw, str) or len(raw) > max_len:
+def _json(raw: str, max_len: int, name: str) -> Any:
+    if len(raw) > max_len:
         _error(name + " JSON length")
     try:
         return json.loads(raw)
@@ -98,12 +101,15 @@ def _json(raw: str, max_len: int, name: str):
         _error(name + " invalid JSON")
 
 
-def _parse_repos(raw: str) -> list:
+def _parse_repos(raw: str) -> list[str]:
     data = _json(raw, 600, "repositories")
-    if not isinstance(data, list) or not 1 <= len(data) <= 4:
+    if not isinstance(data, list):
         _error("repositories must contain 1..4 entries")
-    out = []
-    for item in data:
+    items = cast(list[Any], data)
+    if not 1 <= len(items) <= 4:
+        _error("repositories must contain 1..4 entries")
+    out: list[str] = []
+    for item in items:
         if not isinstance(item, str) or not REPO_PATTERN.fullmatch(item) or item != item.lower():
             _error("invalid repository slug")
         if item in out:
@@ -112,13 +118,17 @@ def _parse_repos(raw: str) -> list:
     return out
 
 
-def _parse_dimensions(raw: str) -> list:
+def _parse_dimensions(raw: str) -> list[dict[str, str]]:
     data = _json(raw, 9000, "dimensions")
-    if not isinstance(data, list) or not 2 <= len(data) <= MAX_DIMS:
+    if not isinstance(data, list):
         _error("security charter requires 2..5 atomic dimensions")
-    seen = []
-    out = []
-    for row in data:
+    rows = cast(list[Any], data)
+    if not 2 <= len(rows) <= MAX_DIMS:
+        _error("security charter requires 2..5 atomic dimensions")
+    seen: list[str] = []
+    out: list[dict[str, str]] = []
+    for raw_row in rows:
+        row = cast(dict[str, Any], raw_row)
         if not _strict_obj(row, ("id", "objective", "failure_mode")):
             _error("dimension keys must be id/objective/failure_mode")
         ident = row["id"]
@@ -131,9 +141,7 @@ def _parse_dimensions(raw: str) -> list:
     return out
 
 
-def _source_identity(url: str) -> tuple:
-    if not isinstance(url, str):
-        _error("invalid source URL")
+def _source_identity(url: str) -> tuple[str, str, str]:
     found = SRC_PATTERN.fullmatch(url)
     if found is None:
         _error("source must be raw.githubusercontent.com at pinned 40-hex commit")
@@ -143,14 +151,18 @@ def _source_identity(url: str) -> tuple:
     return (owner.lower() + "/" + repo.lower(), commit, path)
 
 
-def _parse_controls(raw: str, repositories: list) -> list:
+def _parse_controls(raw: str, repositories: list[str]) -> list[dict[str, str]]:
     data = _json(raw, 12000, "controls")
-    if not isinstance(data, list) or not 1 <= len(data) <= MAX_CONTROLS:
+    if not isinstance(data, list):
         _error("controls count must be 1..4")
-    seen_ids = []
-    seen_urls = []
-    result = []
-    for row in data:
+    rows = cast(list[Any], data)
+    if not 1 <= len(rows) <= MAX_CONTROLS:
+        _error("controls count must be 1..4")
+    seen_ids: list[str] = []
+    seen_urls: list[str] = []
+    result: list[dict[str, str]] = []
+    for raw_row in rows:
+        row = cast(dict[str, Any], raw_row)
         if not _strict_obj(row, ("id", "mechanism", "source_url", "source_sha256")):
             _error("control fields must be exact")
         ident = row["id"]
@@ -195,15 +207,20 @@ def _sender() -> str:
     return str(gl.message.sender_address).lower()
 
 
-def _normalize_assessment(value, dimension_ids: list, count: int):
+def _normalize_assessment(value: Any, dimension_ids: list[str], count: int) -> dict[str, Any] | None:
     """Strictly typed result, no missing dimensions and no duplicate support IDs."""
     if not _strict_obj(value, ("dimensions", "no_new_material_weakening", "reason_code")):
         return None
-    rows = value["dimensions"]
-    if not isinstance(rows, list) or len(rows) != len(dimension_ids):
+    assessment = cast(dict[str, Any], value)
+    rows = assessment["dimensions"]
+    if not isinstance(rows, list):
         return None
-    normalized = []
-    for index, row in enumerate(rows):
+    dimension_rows = cast(list[Any], rows)
+    if len(dimension_rows) != len(dimension_ids):
+        return None
+    normalized: list[dict[str, Any]] = []
+    for index, raw_row in enumerate(dimension_rows):
+        row = cast(dict[str, Any], raw_row)
         if not _strict_obj(row, ("id", "state", "supports")):
             return None
         if type(row["id"]) is not str or row["id"] != dimension_ids[index]:
@@ -212,7 +229,10 @@ def _normalize_assessment(value, dimension_ids: list, count: int):
         if type(state) is not str or state not in (COVERED, GAP, UNKNOWN):
             return None
         supports = row["supports"]
-        if not isinstance(supports, list) or len(supports) > count:
+        if not isinstance(supports, list):
+            return None
+        supports = cast(list[Any], supports)
+        if len(supports) > count:
             return None
         if any(type(i) is not int or i < 0 or i >= count for i in supports):
             return None
@@ -223,8 +243,8 @@ def _normalize_assessment(value, dimension_ids: list, count: int):
         if state != COVERED and supports:
             return None
         normalized.append({"id": row["id"], "state": state, "supports": supports})
-    no_new = value["no_new_material_weakening"]
-    reason = value["reason_code"]
+    no_new = assessment["no_new_material_weakening"]
+    reason = assessment["reason_code"]
     if no_new not in ("YES", "NO", "UNKNOWN") or type(no_new) is not str:
         return None
     if type(reason) is not str or reason not in REASONS or len(reason) > MAX_REASON:
@@ -237,7 +257,7 @@ def _normalize_assessment(value, dimension_ids: list, count: int):
     return {"dimensions": normalized, "no_new_material_weakening": no_new, "reason_code": reason}
 
 
-def _decision(value: dict) -> int:
+def _decision(value: dict[str, Any]) -> int:
     if value["no_new_material_weakening"] == "NO" or any(
         row["state"] == GAP for row in value["dimensions"]
     ):
@@ -249,12 +269,12 @@ def _decision(value: dict) -> int:
     return ASSESS_PASS
 
 
-def _read_sources(controls: list) -> list:
+def _read_sources(controls: list[dict[str, str]]) -> list[dict[str, str]]:
     """Always re-fetch on EACH validator; never accept leader-presented excerpts."""
-    out = []
+    out: list[dict[str, str]] = []
     for control in controls:
         reply = gl.nondet.web.get(control["source_url"])
-        body = reply.body
+        body: Any = reply.body
         if isinstance(body, str):
             body = body.encode("utf-8")
         if not isinstance(body, bytes) or len(body) < 20 or len(body) > MAX_SOURCE_BYTES:
@@ -270,7 +290,8 @@ def _read_sources(controls: list) -> list:
     return out
 
 
-def _prompt(charter: dict, controls: list, sources: list, independent: bool) -> str:
+def _prompt(charter: dict[str, Any], controls: list[dict[str, str]],
+            sources: list[dict[str, str]], independent: bool) -> str:
     return (
         "CONTROLSUB / " + ("INDEPENDENT VALIDATOR" if independent else "LEADER") + "\n"
         "You are assessing a substituted set of documented security controls against a SEALED SECURITY CHARTER.\n"
@@ -302,7 +323,8 @@ def _prompt(charter: dict, controls: list, sources: list, independent: bool) -> 
     )
 
 
-def _consensus(charter: dict, controls: list, dimension_ids: list) -> dict:
+def _consensus(charter: dict[str, Any], controls: list[dict[str, str]],
+               dimension_ids: list[str]) -> dict[str, Any]:
     """Validator reruns BOTH source fetching and judgment on frozen input."""
     def leader_fn():
         sources = _read_sources(controls)
@@ -312,11 +334,12 @@ def _consensus(charter: dict, controls: list, dimension_ids: list) -> dict:
             _error("malformed leader assessment")
         return parsed
 
-    def validator_fn(leader_result):
+    def validator_fn(leader_result: Any) -> bool:
         if not isinstance(leader_result, gl.vm.Return):
             return False
         try:
-            claimed = _normalize_assessment(leader_result.calldata, dimension_ids, len(controls))
+            leader_return: Any = cast(Any, leader_result)
+            claimed = _normalize_assessment(leader_return.calldata, dimension_ids, len(controls))
             if claimed is None:
                 return False
             independently_fetched = _read_sources(controls)
@@ -327,7 +350,9 @@ def _consensus(charter: dict, controls: list, dimension_ids: list) -> dict:
         except Exception:
             return False
 
-    return gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+    # Keep the call direct so GenVM Linter can verify the consensus boundary.
+    return gl.vm.run_nondet_unsafe(  # type: ignore[reportUnknownMemberType]  # SDK generic is dynamically typed
+        leader_fn, validator_fn)
 
 
 @allow_storage
@@ -370,7 +395,7 @@ class Candidate:
 class IControlSub:
     class View:
         def is_active(self, charter_id: u256, candidate_id: u256, expected_certificate_hash: str, expected_charter_hash: str) -> bool: ...
-        def get_certificate(self, candidate_id: u256) -> dict: ...
+        def get_certificate(self, candidate_id: u256) -> dict[str, Any]: ...
 
 
 class ControlSub(gl.Contract):
@@ -542,32 +567,37 @@ class ControlSub(gl.Contract):
         self.candidates[candidate_id] = candidate
         return True
 
-    @gl.public.view
-    def get_charter(self, charter_id: u256) -> dict:
+    @gl.public.view  # type: ignore[reportUnknownMemberType]  # SDK decorator has no strict typing
+    def get_charter(self, charter_id: u256) -> dict[str, Any]:
         c = self._charter(charter_id)
+        dimensions: list[dict[str, str]] = cast(list[dict[str, str]], json.loads(c.dimensions_json))
+        repositories: list[str] = cast(list[str], json.loads(c.repositories_json))
         return {"id": int(charter_id), "owner": str(c.owner), "title": c.title,
                 "context": c.context, "baseline": c.baseline,
-                "dimensions": json.loads(c.dimensions_json),
-                "allowed_repositories": json.loads(c.repositories_json),
+                "dimensions": dimensions,
+                "allowed_repositories": repositories,
                 "charter_hash": c.charter_hash, "created_at": int(c.created_at),
                 "revision": int(c.revision), "active_candidate_id": int(c.active_candidate_id),
                 "active_certificate_hash": c.active_certificate_hash,
                 "certificate_lifetime_days": int(c.expires_days)}
 
-    @gl.public.view
-    def get_candidate(self, candidate_id: u256) -> dict:
+    @gl.public.view  # type: ignore[reportUnknownMemberType]  # SDK decorator has no strict typing
+    def get_candidate(self, candidate_id: u256) -> dict[str, Any]:
         c = self._candidate(candidate_id)
+        controls: list[dict[str, str]] = cast(list[dict[str, str]], json.loads(c.controls_json))
+        assessment: dict[str, Any] | None = (
+            cast(dict[str, Any], json.loads(c.decision_json)) if c.decision_json else None)
         return {"id": int(candidate_id), "charter_id": int(c.charter_id),
                 "proposer": str(c.proposer), "name": c.name,
-                "controls": json.loads(c.controls_json), "candidate_hash": c.candidate_hash,
+                "controls": controls, "candidate_hash": c.candidate_hash,
                 "charter_hash": c.charter_hash, "status": int(c.status),
                 "submitted_at": int(c.submitted_at), "assessed_at": int(c.assessed_at),
                 "ratified_at": int(c.ratified_at), "expires_at": int(c.expires_at),
-                "assessment": json.loads(c.decision_json) if c.decision_json else None,
+                "assessment": assessment,
                 "assessment_hash": c.assessment_hash, "certificate_hash": c.certificate_hash}
 
-    @gl.public.view
-    def get_certificate(self, candidate_id: u256) -> dict:
+    @gl.public.view  # type: ignore[reportUnknownMemberType]  # SDK decorator has no strict typing
+    def get_certificate(self, candidate_id: u256) -> dict[str, Any]:
         c = self._candidate(candidate_id)
         charter = self._charter(c.charter_id)
         active = int(c.status) == RATIFIED and int(charter.active_candidate_id) == int(candidate_id)
@@ -578,7 +608,7 @@ class ControlSub(gl.Contract):
                 "charter_hash": c.charter_hash,
                 "is_current": active and bool(c.certificate_hash) and _now() < int(c.expires_at)}
 
-    @gl.public.view
+    @gl.public.view  # type: ignore[reportUnknownMemberType]  # SDK decorator has no strict typing
     def is_active(self, charter_id: u256, candidate_id: u256,
                   expected_certificate_hash: str, expected_charter_hash: str) -> bool:
         c = self.candidates.get(candidate_id)

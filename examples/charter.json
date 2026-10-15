@@ -1,0 +1,19 @@
+{
+  "title": "Production deploy security objective",
+  "context": "Privileged deploy operations on production configuration; not ordinary read-only support.",
+  "baseline": "Privileged deployment requires hardware-rooted identity and a separate approver. No deployment may bypass either requirement.",
+  "dimensions": [
+    {
+      "id": "STRONG_AUTH",
+      "objective": "Every administrator authenticates with hardware-bound credentials without password-only bypass.",
+      "failure_mode": "An administrator can authenticate with a reusable password alone."
+    },
+    {
+      "id": "DUAL_CONTROL",
+      "objective": "Privileged production activation requires an independent authorized review before activation.",
+      "failure_mode": "The deployer can activate a production change with no independent approval."
+    }
+  ],
+  "allowed_repositories": ["ifem1/control-sub"],
+  "certificate_lifetime_days": 14
+}

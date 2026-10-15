@@ -1,0 +1,5 @@
+service_gateway:
+  auth: hardware-bound key
+  authorization: separate admin approval
+  deny_unsigned: true
+  audit: append-only

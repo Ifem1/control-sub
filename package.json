@@ -1,0 +1,14 @@
+{
+  "name": "controlsub-standalone-ic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ControlSub consensus-checked security control equivalence on StudioNet 61999",
+  "scripts": {
+    "cli:version": "genlayer --version",
+    "network:guard": "node scripts/guard_studionet.mjs",
+    "deploy:contract": "node scripts/deploy_studionet.mjs"
+  },
+  "devDependencies": {
+    "genlayer": "0.39.1"
+  }
+}

@@ -1,0 +1,4 @@
+review_pipeline:
+  approvals: two independent reviewers
+  require_review_before_activation: true
+  bypass_paths: none

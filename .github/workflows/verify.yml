@@ -1,0 +1,39 @@
+name: Verify ControlSub
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      GENVM_VERSION: v0.2.12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: npm ci
+      - run: npm run cli:version
+      - run: npm run network:guard
+      - run: python -m pip install -r requirements-dev.txt -r requirements-lint.txt
+      - run: python -m pip show pytest genlayer-test genvm-linter
+      - run: genvm-lint lint contracts/controlsub.py
+      - run: genvm-lint validate contracts/controlsub.py
+      - run: genvm-lint check contracts/controlsub.py
+      - run: genvm-lint typecheck contracts/controlsub.py --strict
+      - run: genvm-lint schema contracts/controlsub.py
+      - run: genvm-lint lint contracts/controlsub_consumer.py
+      - run: genvm-lint validate contracts/controlsub_consumer.py
+      - run: genvm-lint check contracts/controlsub_consumer.py
+      - run: genvm-lint typecheck contracts/controlsub_consumer.py --strict
+      - run: genvm-lint schema contracts/controlsub_consumer.py
+      - run: python -m pytest -q
+      - run: python -m pytest tests/test_direct_mode.py -v
+      - run: python scripts/preflight.py
+      - run: python -m compileall -q contracts tests scripts

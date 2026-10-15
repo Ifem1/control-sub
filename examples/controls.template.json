@@ -1,0 +1,14 @@
+[
+  {
+    "id": "GATEWAY",
+    "mechanism": "A gateway enforces credential-bound authentication and blocks the password fallback.",
+    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/REPLACE_WITH_40_HEX_COMMIT_SHA/examples/gateway.yml",
+    "source_sha256": "REPLACE_WITH_SHA256_OF_EXACT_PUBLISHED_BYTES"
+  },
+  {
+    "id": "REVIEW",
+    "mechanism": "A separate reviewer approval is enforced before production activation.",
+    "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/REPLACE_WITH_40_HEX_COMMIT_SHA/examples/review.yml",
+    "source_sha256": "REPLACE_WITH_SHA256_OF_EXACT_PUBLISHED_BYTES"
+  }
+]

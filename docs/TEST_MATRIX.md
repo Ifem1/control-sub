@@ -6,7 +6,7 @@
 
 ## GenLayer Direct Mode suite
 
-`tests/test_direct_mode.py` uses `genlayer-test==0.29.2`, `direct_deploy`, `direct_vm`, `mock_web`, `mock_llm`, `expect_revert`, `run_validator`, and `check_pickling` to verify core runtime behavior. These tests require GenLayer's downloaded GenVM artifacts and can only count as passing once actually executed. Do not confuse a simulated LLM answer with live validator agreement. On this Windows host, all five Direct Mode cases currently fail in `gltest.direct.loader._inject_message_to_fd0` before contract loading: Windows refuses to unlink the temporary message file while it is still attached to stdin. This is a test-runtime/platform failure, not evidence that the scenarios passed. The pinned CI workflow runs on Ubuntu, but its result must be checked after a push.
+`tests/test_direct_mode.py` uses `genlayer-test==0.29.2`, `direct_deploy`, `direct_vm`, `mock_web`, `mock_llm`, `expect_revert`, `run_validator`, and `check_pickling` to exercise actual GenVM Direct Mode. It does not prove public-network multi-validator consensus because the web and LLM inputs are mocked. The full suite and all five Direct Mode tests passed in GitHub Actions on Ubuntu in [run 38787005748](https://github.com/Ifem1/control-sub/actions/runs/38787005748). On this Windows workstation, Direct Mode cannot start: `gltest.direct.loader._inject_message_to_fd0` attempts to unlink a temporary message file still attached to stdin, which Windows refuses. This platform issue does not affect the Ubuntu CI execution.
 
 ## Local handoff run
 
@@ -17,8 +17,10 @@ Verified with Python 3.12.10, pytest 9.0.2, GenLayer Test 0.29.2, GenVM Linter 0
 - Preflight and compileall: passed.
 - `npm ci`: installed from the generated lockfile using lifecycle scripts disabled after the default Windows install hit a package-fetch permission error. The CLI version and StudioNet network guard were verified using the local package.
 - StudioNet guard: verified chain 61999 at the exact configured RPC.
-- Direct Mode: **5 failed before contract loading** due to the Windows temp-file unlink issue described above.
-- GitHub Actions and live contract lifecycle: not yet run. The target GitHub repository is empty, but the saved GitHub credentials are invalid; no CLI wallet is available for deployment.
+- Direct Mode: **5 passed in GitHub Actions on Ubuntu**; local Windows execution remains blocked before contract loading by the temp-file unlink issue described above.
+- GitHub Actions: **passed** in [run 38787005748](https://github.com/Ifem1/control-sub/actions/runs/38787005748), including npm ci, CLI version/network guard, all linter checks, strict typechecks, schema extraction, full pytest, Direct Mode, preflight, and compileall.
+- Evidence sources: `examples/gateway.yml` and `examples/review.yml` are publicly retrievable at commit `4de8bac4e7cf68dc43c6d34bc3461157b6ad44be`; published raw URLs returned HTTP 200 and their Git blob SHA256 digests are pinned in `examples/controls.template.json`.
+- Live StudioNet lifecycle: not run. The configured CLI has an active funded account, but it is locked; its unlock credential is not available in this session. No contract addresses, transaction receipts, or on-chain success claims are recorded.
 
 ## StudioNet real lifecycle evidence
 

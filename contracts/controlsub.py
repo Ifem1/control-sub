@@ -186,8 +186,9 @@ def _parse_controls(raw: str, repositories: list[str]) -> list[dict[str, str]]:
 
 
 def _now() -> int:
-    raw = getattr(getattr(gl, "message", None), "raw", None)
-    value = getattr(raw, "datetime", None)
+    raw = getattr(gl, "message_raw", None)
+    raw_message = cast(dict[str, Any], raw) if isinstance(raw, dict) else None
+    value: Any = raw_message.get("datetime") if raw_message is not None else None
     if value is None:
         _error("chain transaction time unavailable")
     if isinstance(value, int):

@@ -58,6 +58,6 @@ def test_consumer_owner_cannot_bypass_certificate(env):
     with pytest.raises(env.vm.UserError,match="owner only"):
         consumer.execute(candidate,cert,"abc123")
     env.gl.message.sender_address=env.A
-    env.gl.message.raw.datetime="2026-12-01T12:00:00Z"
+    env.gl.message_raw["datetime"]="2026-12-01T12:00:00Z"
     with pytest.raises(env.vm.UserError,match="not actively certified"):
         consumer.execute(candidate,cert,"abc123")

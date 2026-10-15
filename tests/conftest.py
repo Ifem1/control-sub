@@ -75,8 +75,8 @@ def env(monkeypatch):
         Contract=object, contract_interface=lambda cls: cls,
         vm=machine,
         nondet=SimpleNamespace(web=SimpleNamespace(get=nondet.get), exec_prompt=nondet.exec_prompt),
-        message=SimpleNamespace(sender_address=A,
-                                raw=SimpleNamespace(datetime="2026-10-15T12:00:00Z")))
+        message=SimpleNamespace(sender_address=A),
+        message_raw={"datetime": "2026-10-15T12:00:00Z"})
     module.gl = gl
     module.TreeMap = TreeMap
     module.Address = str

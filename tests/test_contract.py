@@ -206,7 +206,7 @@ def test_active_state_optimistic_concurrency_guard(env):
 
 def test_automatic_expiry(env):
     charter_id,cid,cert=approve(env)
-    env.gl.message.raw.datetime="2026-10-30T12:00:00Z"
+    env.gl.message_raw["datetime"]="2026-10-30T12:00:00Z"
     assert not env.contract.is_active(charter_id,cid,cert,env.contract.get_charter(charter_id)["charter_hash"])
     assert env.contract.get_certificate(cid)["is_current"] is False
 
@@ -241,7 +241,7 @@ def test_superseding_invalidates_old_consumer_pin(env):
 def test_old_assessment_cannot_be_ratified(env):
     _,cid,fp=setup(env)
     env.contract.assess(cid,fp)
-    env.gl.message.raw.datetime = "2026-10-19T12:00:00Z"
+    env.gl.message_raw["datetime"] = "2026-10-19T12:00:00Z"
     with pytest.raises(env.vm.UserError,match="too old"):
         env.contract.ratify(cid,env.contract.get_candidate(cid)["assessment_hash"],"")
 

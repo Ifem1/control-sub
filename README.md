@@ -129,7 +129,7 @@ The local GenLayer CLI is pinned in `package.json`; use the committed npm lockfi
 
 ## Verification status
 
-The source and evidence examples are published at [`Ifem1/control-sub`](https://github.com/Ifem1/control-sub). Commit `4de8bac4e7cf68dc43c6d34bc3461157b6ad44be` contains the pinned source files. The current `main` branch adds strict type fixes and CI updates; CI status is linked from the repository Actions page. The sample YAML demonstrates documented mechanisms only: it does not prove a production gateway or review service enforces them. The live primitive deployment, charter, proposal, and validator disagreement are recorded in `docs/TEST_MATRIX.md`; there is no active certificate or consumer deployment because the example evidence did not reach consensus.
+The source and evidence examples are published at [`Ifem1/control-sub`](https://github.com/Ifem1/control-sub). Executable reference controls and behavior checks are pinned to commit `93cdba4efef619202f00a50783f866b7e5c8f60b`. The sample code demonstrates its own enforcement behavior; it does not prove a production gateway or review service uses it. The live StudioNet record in `docs/TEST_MATRIX.md` includes both the initial disagreement and the successful follow-up assessment, owner ratification, consumer deployment, and guarded execution.
 
 ## Composition
 

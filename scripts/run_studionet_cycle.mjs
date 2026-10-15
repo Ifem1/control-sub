@@ -116,7 +116,10 @@ const controls = JSON.stringify(JSON.parse(read('examples/controls.template.json
 let candidateId = Number(process.env.CONTROLSUB_EXISTING_CANDIDATE_ID ?? 0);
 if (!candidateId) {
   await write(primitiveAddress, 'propose', [charterId, 'Gateway and review controls', controls, charter.charter_hash], 'propose');
-  candidateId = 1;
+  candidateId = Number(process.env.CONTROLSUB_NEW_CANDIDATE_ID ?? 0);
+  if (!Number.isSafeInteger(candidateId) || candidateId <= 0) {
+    fail('Set CONTROLSUB_NEW_CANDIDATE_ID to the ID returned by the just-finalized propose transaction.');
+  }
 }
 let candidate = await client.readContract({
   address: primitiveAddress, functionName: 'get_candidate', args: [candidateId],

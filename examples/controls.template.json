@@ -7,7 +7,7 @@
   },
   {
     "id": "REVIEW",
-    "Behavior checks confirm activation raises a control violation when approval is absent and when the reviewer is the deployer.",
+    "mechanism": "Behavior checks confirm activation raises a control violation when approval is absent and when the reviewer is the deployer.",
     "source_url": "https://raw.githubusercontent.com/Ifem1/control-sub/93cdba4efef619202f00a50783f866b7e5c8f60b/examples/test_enforced_controls.py",
     "source_sha256": "ec308db982019058a2698690f5c048e93aba136b3b30f42f8ed37847d25b5f8c"
   }

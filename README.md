@@ -100,11 +100,14 @@ is_active(charter_id: u256, candidate_id: u256,
 
 Status constants: `SUBMITTED=1`, `ASSESS_PASS=2`, `ASSESS_FAIL=3`, `ASSESS_UNKNOWN=4`, `RATIFIED=5`, `REVOKED=6`, `SUPERSEDED=7`, `OWNER_REJECTED=8`.
 
-### Example
+### Active evidence example
 
-See [`examples/charter.json`](examples/charter.json) and [`examples/controls.template.json`](examples/controls.template.json). The control file contains immutable pins to the published example YAML at commit `4de8bac4e7cf68dc43c6d34bc3461157b6ad44be`; both raw GitHub URLs returned HTTP 200 and the exact Git blob bytes matched the recorded SHA256 digests. Verify future changes against the actual published bytes with `python scripts/check_source.py` before updating these pins.
+The successful StudioNet candidate `2` used these exact immutable evidence files, pinned in [`examples/controls.template.json`](examples/controls.template.json):
 
-Only an authorized repo is eligible; passing examples do not imply the YAML fixtures document production-grade controls. A proper live example should use nontrivial public, testable configuration plus meaningful negative controls.
+- Authentication reference: [`examples/enforced_controls.py`](https://raw.githubusercontent.com/Ifem1/control-sub/93cdba4efef619202f00a50783f866b7e5c8f60b/examples/enforced_controls.py) — SHA256 `750aaadb18ed40873bf04a4768bd3043541f0bc71da85f73be10f71a52c4725f`.
+- Independent-review behavior checks: [`examples/test_enforced_controls.py`](https://raw.githubusercontent.com/Ifem1/control-sub/93cdba4efef619202f00a50783f866b7e5c8f60b/examples/test_enforced_controls.py) — SHA256 `ec308db982019058a2698690f5c048e93aba136b3b30f42f8ed37847d25b5f8c`.
+
+The reference function rejects password-only authentication and requires approval from a distinct authorized reviewer before activation. Its behavior checks cover those cases. GenLayer validators agreed that the pinned files covered the charter dimensions; candidate `2` was then ratified and consumed by the demo IC. This demonstrates the published reference code and the ControlSub lifecycle. It does not establish that a live identity provider, production gateway, or deployment service uses the reference code, nor does it provide operational or production security assurance. The older [`gateway.yml`](examples/gateway.yml) and [`review.yml`](examples/review.yml) are historical illustrative configuration only; they were not the evidence for the successful candidate. Verify any source bytes with `python scripts/check_source.py <path>` before changing immutable pins.
 
 ## Local verification
 

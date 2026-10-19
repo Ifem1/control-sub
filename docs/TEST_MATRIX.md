@@ -29,6 +29,32 @@ Verified with Python 3.12.10, pytest 9.0.2, GenLayer Test 0.29.2, GenVM Linter 0
 
 The primitive deployment, failed initial sample assessment, passing follow-up assessment, owner ratification, consumer deployment and guarded execution above are live StudioNet observations. The executable reference code is evidence of its own behavior; it does not prove a production gateway or review service uses it. The successful cycle proves that the contract's certificate and consumer gates completed on StudioNet for this demo proposal.
 
+## StudioNet negative-path audit
+
+All transactions below were sent to StudioNet chain `61999` through `https://studio.genlayer.com/api` by the actual owner `0xD6423aE82a975d55C6CeaC222827A727325e0459`. Every call reached `FINALIZED`; consensus and GenVM execution results are recorded separately.
+
+### Incorrect certificate
+
+- Fresh consumer deployment `0xd14661f58528e8c5fb54d47d29c1312c8f815fb634dc3e2f92e4e998ee1530cf`: `FINALIZED`, `MAJORITY_AGREE`; the leader deployment receipt succeeded and the deployed contract was returned at `0x9eAc2aD543656D6E779264C0D56d6a2C2e229cbb`. It is pinned to charter `1`, the correct charter hash and the successful candidate's action hash.
+- Execution `0x5b89e188369b6ae3ee2a890cd1c426e0bd66cd4ee47b45fed07cfa3eccd37b96`: `FINALIZED`, `MAJORITY_AGREE`; GenVM execution is `ERROR` with rollback payload `substitute not actively certified`. The submitted certificate was 64 zeroes instead of candidate `2`'s valid certificate.
+- Independent `get_execution()` readback before and after is unchanged: `executed=false`, `candidate_id=0`, `certificate_hash=""`, charter `1`, expected charter/action hashes and the owner address. This is an agreed execution rejection, not just a failed validator vote.
+
+### Incorrect candidate binding
+
+- Fresh consumer deployment `0x5e1284978962d0734cd1381f2b0d3195ab0a20f817dcba4b8c4fbf55ff77184f`: `FINALIZED`, `MAJORITY_AGREE`, GenVM deployment execution `SUCCESS`; deployed at `0xE6a77779230fbC3f3837Ad41E1899eF29b3790F0`, pinned to the correct charter `1` and action hash.
+- Execution `0xa20fec6fc4e2b7128d41f8a1e68ae43052fac21aaaf5b51d9cb8864cd9065dde`: `FINALIZED`, `MAJORITY_AGREE`; GenVM execution is `ERROR` with rollback payload `substitute not actively certified`. It supplied the valid candidate `2` certificate with candidate ID `1`, which is not ratified.
+- Independent before/after readback is unchanged: `executed=false`, `candidate_id=0`, and `certificate_hash=""`; the charter and action pins remain as deployed.
+
+### Isolated revocation proof blocked by validator disagreement
+
+- The real owner created isolated charter `2` in transaction `0x93becf0811b74de0ccb30d006816d3451d50710be2c781ae198776387ff63800` (`FINALIZED`, `MAJORITY_AGREE`, leader execution `SUCCESS`, return value `2`). Readback: owner `0xD6423aE82a975d55C6CeaC222827A727325e0459`, charter hash `c06e1ce1107c5119cf173e6f3ee14e62ebf2067a59db11db0c51f589b6110484`.
+- Candidate `3` was proposed in `0xf4760b26507a51f1766026fea2114b08727b55c115e899b130ef567598d5c265` (`FINALIZED`, `MAJORITY_AGREE`, leader execution `SUCCESS`, return value `3`).
+- Assessment `0x4a070f8271e3b50130f91cee609135e726bbc11c0b7d22da15f6193be70cb191` finalized as `MAJORITY_DISAGREE`; the leader execution returned status `2`, while three validator votes were `DISAGREE` and two were `IDLE`. Because the transaction did not reach agreement, no assessment was stored.
+- One retry, `0xa99f7d42cead173ee9defa5a77dd9fd04a742713c8354badcb898dd2aa92681e`, also finalized `MAJORITY_DISAGREE`; the leader execution returned status `2`, while three validator votes were `DISAGREE` and two were `IDLE`. The on-chain readback remains candidate `3`, status `SUBMITTED` (`1`), `assessment=null`, empty assessment hash, certificate inactive, and `is_active(2,3,...)=false`.
+- No ratification, revocation, or consumer call followed: without an agreed passing assessment there was no valid certificate to revoke. The successful charter `1` / candidate `2` remains `RATIFIED` and active, and its original consumer remains executed. The disagreement is preserved as the actual consensus blocker; it is not described as a completed revocation denial.
+
+The two consumer rollback transactions demonstrate certificate and candidate guards. The revocation scenario remains unproven because StudioNet validators disagreed twice on the isolated candidate. The original successful positive lifecycle and its historical receipts remain intact.
+
 ## Negative tests that particularly matter
 
 1. A proposal appears COVERED but inserts a password-only emergency bypass: classify material weakening, refuse ratification.

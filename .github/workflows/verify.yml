@@ -24,6 +24,7 @@ jobs:
       - run: npm ci
       - run: npm run cli:version
       - run: npm run network:guard
+      - run: python scripts/source_manifest.py --check
       - run: python -m pip install -r requirements-dev.txt -r requirements-lint.txt
       - run: python -m pip show pytest genlayer-test genvm-linter
       - run: genvm-lint lint contracts/controlsub.py
